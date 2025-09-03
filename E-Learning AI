@@ -1,0 +1,114 @@
+pip install nltk
+
+import random
+import nltk
+from nltk.tokenize import word_tokenize
+
+# Download necessary NLTK data (only first time)
+nltk.download('punkt')
+
+# === Sample Knowledge Base (Can be replaced with external DB or LLM) ===
+knowledge_base = {
+    "math": {
+        "What is Pythagoras theorem?": "Pythagoras theorem states that in a right-angled triangle, the square of the hypotenuse is equal to the sum of the squares of the other two sides: a² + b² = c².",
+        "What is 2 + 2?": "2 + 2 = 4",
+        "How to calculate area of circle?": "Area of a circle = π × r², where r is the radius."
+    },
+    "science": {
+        "What is photosynthesis?": "Photosynthesis is the process by which green plants use sunlight to synthesize foods with the help of chlorophyll, taking in CO₂ and water and releasing oxygen.",
+        "What is Newton's first law?": "Newton's First Law states that an object will remain at rest or in uniform motion unless acted upon by an external force."
+    }
+}
+
+quiz_questions = {
+    "math": [
+        {"question": "What is 3 × 5?", "answer": "15"},
+        {"question": "What is the square root of 64?", "answer": "8"}
+    ],
+    "science": [
+        {"question": "What gas do plants absorb during photosynthesis?", "answer": "CO₂ (carbon dioxide)"},
+        {"question": "What is the chemical symbol for water?", "answer": "H₂O"}
+    ]
+}
+
+# === Helper Functions ===
+def find_answer(topic, question_text):
+    topic_data = knowledge_base.get(topic.lower(), {})
+    for q in topic_data:
+        if question_text.lower() in q.lower() or q.lower() in question_text.lower():
+            return topic_data[q]
+    return f"Sorry, I don't have the answer for '{question_text}' in {topic}. Try another question!"
+
+def give_quiz(topic):
+    quizzes = quiz_questions.get(topic.lower(), [])
+    if not quizzes:
+        return f"No quiz available for {topic}."
+    
+    print(f"\n🎯 Here's a short quiz on {topic}:")
+    score = 0
+    for i, qa in enumerate(random.sample(quizzes, min(2, len(quizzes))), 1):
+        print(f"\nQ{i}: {qa['question']}")
+        user_ans = input("Your answer: ").strip()
+        if user_ans.lower() in qa['answer'].lower() or qa['answer'].lower() in user_ans.lower():
+            print("✅ Correct!")
+            score += 1
+        else:
+            print(f"❌ Incorrect. The correct answer is: {qa['answer']}")
+    print(f"\n🏆 Your score: {score}/{len(quizzes)}")
+    return score
+
+def summarize_topic(topic):
+    summaries = {
+        "math": "Mathematics is the study of numbers, shapes, patterns, and relationships. Key branches include algebra, geometry, calculus, and statistics.",
+        "science": "Science is a systematic enterprise that builds and organizes knowledge in the form of testable explanations and predictions about the universe. Main branches include physics, chemistry, biology, and earth science."
+    }
+    return summaries.get(topic.lower(), f"No summary available for {topic}.")
+
+# === Chat Loop ===
+def study_ai_chat():
+    print("🤖 Hello, I'm your Study AI Assistant!")
+    print("You can ask me questions like:")
+    print("- 'Tell me about Pythagoras theorem' (in Math)")
+    print("- 'Give me a math quiz'")
+    print("- 'Summarize Science topic'")
+    print("- Type 'exit' to quit.\n")
+
+    while True:
+        user_input = input("You: ").strip()
+        if user_input.lower() in ['exit', 'quit']:
+            print("👋 Goodbye, keep studying!")
+            break
+
+        # Command-based interaction
+        if user_input.lower().startswith("quiz"):
+            topic = user_input[len("quiz"):].strip()
+            if not topic:
+                print("Please specify a topic, e.g., 'quiz math'")
+            else:
+                give_quiz(topic)
+
+        elif user_input.lower().startswith("summarize"):
+            topic = user_input[len("summarize"):].strip()
+            if not topic:
+                print("Please specify a topic, e.g., 'summarize science'")
+            else:
+                print(f"📝 Summary for {topic}:")
+                print(summarize_topic(topic))
+
+        else:
+            # Try to detect topic from input
+            detected_topic = None
+            for t in knowledge_base.keys():
+                if t.lower() in user_input.lower():
+                    detected_topic = t
+                    break
+
+            if detected_topic:
+                answer = find_answer(detected_topic, user_input)
+                print(f"🤖 {answer}")
+            else:
+                print("🤖 I'm not sure which topic you're asking about. You can specify like 'math: What is 2+2?' or ask for a quiz/summary.")
+
+# Run the assistant
+if __name__ == "__main__":
+    study_ai_chat()
